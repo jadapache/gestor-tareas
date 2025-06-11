@@ -1,6 +1,6 @@
 # 📱 Gestor de Tareas
 
-Un gestor de tareas móvil sencillo y eficiente desarrollado con Jetpack Compose para Android.
+Un gestor de tareas sencillo y eficiente desarrollado con Jetpack Compose para Android.
 
 ## ✨ Características
 
@@ -14,7 +14,7 @@ Un gestor de tareas móvil sencillo y eficiente desarrollado con Jetpack Compose
 Esta aplicación está construida enteramente con **Jetpack Compose**, el moderno kit de herramientas UI declarativo de Android.
 
 ### Arquitectura
-Se sigue una arquitectura simple basada en un `ViewModel` para gestionar el estado de las tareas y la lógica de negocio, lo que permite una clara separación de responsabilidades entre la UI y los datos. El `ViewModel` utiliza `StateFlow` para emitir los cambios en la lista de tareas a la UI.
+Se emplea el patrón MVVM para gestionar el estado de las tareas y la lógica de negocio, lo que permite una clara separación de responsabilidades entre la UI y los datos.
 
 ### Componentes Clave
 * **`MainActivity.kt`**: Punto de entrada de la aplicación y configuración de la navegación Compose.
