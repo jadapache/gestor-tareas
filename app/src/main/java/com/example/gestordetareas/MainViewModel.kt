@@ -88,6 +88,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun marcarTarea(id: Int, completada: Boolean) {
+        viewModelScope.launch {
+            _tareas.value = _tareas.value.map {
+                if (it.id == id) it.copy(completada = completada) else it
+            }
+            guardarTareas()
+        }
+    }
+
     companion object {
         fun provideFactory(application: Application): ViewModelProvider.Factory =
             object : ViewModelProvider.Factory {

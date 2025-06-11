@@ -60,7 +60,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -86,7 +85,8 @@ fun MainScreen(navController: NavHostController, viewModel: MainViewModel) {
         Toast.makeText(context, toastMessage, Toast.LENGTH_SHORT).show()
         toastMessage = ""
     }
-
+    val pendientesTasks = tasks.filter { !it.completada }
+    val completedTasks = tasks.filter { it.completada }
     Scaffold(
         topBar = {
             TopAppBar(title = { Text(stringResource(id = R.string.app_name)) })
@@ -105,17 +105,43 @@ fun MainScreen(navController: NavHostController, viewModel: MainViewModel) {
             verticalArrangement = Arrangement.Top,
         ) {
             Spacer(modifier = Modifier.height(10.dp))
-            if (tasks.isEmpty()) {
+            if (pendientesTasks.isEmpty() && completedTasks.isEmpty()) {
                 Text(text = "No hay tareas registradas.", modifier = Modifier.padding(16.dp))
             } else {
-                LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                    items(tasks) { tarea ->
-                        TareaCard(
-                            tarea = tarea,
-                            navController = navController,
-                            viewModel = viewModel,
-                            onToastMessage = { msg -> toastMessage = msg }
+                if (pendientesTasks.isNotEmpty()) {
+                    LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                        items(pendientesTasks) { tarea ->
+                            TareaCard(
+                                tarea = tarea,
+                                navController = navController,
+                                viewModel = viewModel,
+                                onToastMessage = { msg -> toastMessage = msg }
+                            )
+                        }
+                    }
+                }
+                if (completedTasks.isNotEmpty()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 24.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Completadas (${completedTasks.size})",
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(end = 8.dp) // Alinea el texto a la izquierda
                         )
+                    }
+                    LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                        items(completedTasks) { tarea ->
+                            TareaCard(
+                                tarea = tarea,
+                                navController = navController,
+                                viewModel = viewModel,
+                                onToastMessage = { msg -> toastMessage = msg }
+                            )
+                        }
                     }
                 }
             }
@@ -159,45 +185,83 @@ fun TareaCard(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clickable {
+                // Aquí, si la tarea está completada y haces clic, puedes decidir si quieres editarla
+                // o si el clic solo "desmarca" la tarea.
+                // Por ahora, navegaremos a la edición si la tarea está pendiente,
+                // y la desmarcaremos si ya está completada (como en tu imagen de referencia, el click en completada desmarca).
+                if (tarea.completada) {
+                    viewModel.marcarTarea(tarea.id, false)
+                    onToastMessage("Tarea reasignada")
+                } else {
                     navController.navigate("editar/${tarea.id}")
+                }
             }
-            .heightIn(max = 120.dp),
+            .heightIn(max = 120.dp) // Restringe la altura máxima de la tarjeta
+            .alpha(if (tarea.completada) 0.6f else 1.0f), // Opacidad: 60% si completada, 100% si pendiente
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        Row(
+        Row( // Esta Row es la estructura principal de las columnas
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(16.dp), // Padding interno para toda la tarjeta
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Columna 1: Nombre, Descripción
+            // Columna 1: Checkbox
             Column(
                 modifier = Modifier
-                    .weight(1f)
-                    .align(Alignment.CenterVertically)
-            )
-            {
+                    .padding(end = 8.dp) // Espacio a la derecha del checkbox
+                    .align(Alignment.CenterVertically) // Alineación vertical al centro de la Row principal
+            ) {
+                Checkbox(
+                    checked = tarea.completada,
+                    onCheckedChange = { checked ->
+                        viewModel.marcarTarea(tarea.id, checked)
+                        onToastMessage(if (checked) "Tarea completada" else "Tarea reasignada")
+                    },
+                    modifier = Modifier
+                    // El checkbox ya tiene un tamaño inherente y padding.
+                    // Al quitarle cualquier padding extra que no sea el end,
+                    // y permitir que la columna padre lo centre, suele funcionar bien.
+                )
+            }
+
+            // Columna 2: Nombre, Descripción y Fecha
+            Column(
+                modifier = Modifier
+                    .weight(1f) // Ocupa el espacio restante
+                    .align(Alignment.CenterVertically) // Alineación vertical al centro de la Row principal
+            ) {
                 Text(
                     text = tarea.nombre,
                     style = MaterialTheme.typography.titleMedium.copy(
+                        // No TextDecoration.LineThrough
                         fontWeight = FontWeight.Bold
                     )
                 )
                 if (tarea.descripcion.isNotBlank()) {
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(4.dp)) // Espacio entre nombre y descripción
                     Text(
                         text = tarea.descripcion,
                         style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                     )
                 }
+                // Mostrar la fecha de creación
+                //if (tarea.fechaCreacion != null) { // Asegúrate de que tu Tarea tenga este campo
+                //    Spacer(modifier = Modifier.height(4.dp))
+                //    Text(
+                 //       text = tarea.fechaCreacion.format(DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm")),
+                 //       style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)),
+                 //   )
+                //}
             }
-            // Columna 2: Papelera
+
+            // Columna 3: Papelera
             Column(
                 modifier = Modifier
-                    .padding(start = 8.dp)
-                    .align(Alignment.CenterVertically)
+                    .padding(start = 8.dp) // Espacio a la izquierda de la papelera
+                    .align(Alignment.CenterVertically) // Alineación vertical al centro de la Row principal
             ) {
                 IconButton(onClick = { showDialog = true }) {
                     Icon(
