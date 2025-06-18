@@ -9,9 +9,9 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import com.jadapache.task2hacer.data.model.Tarea
-import com.jadapache.task2hacer.data.model.TareaRepository
-import com.jadapache.task2hacer.data.model.AppDatabase
+import com.jadapache.task2hacer.data.models.Tarea
+import com.jadapache.task2hacer.data.repositories.TareaRepository
+import com.jadapache.task2hacer.data.AppDatabase
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val repository: TareaRepository

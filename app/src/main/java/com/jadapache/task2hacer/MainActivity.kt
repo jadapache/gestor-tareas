@@ -56,7 +56,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
-import com.jadapache.task2hacer.data.model.Tarea
+import com.jadapache.task2hacer.data.models.Tarea
 import com.jadapache.task2hacer.screens.FormularioScreen
 import com.jadapache.task2hacer.screens.EditarTareaScreen
 

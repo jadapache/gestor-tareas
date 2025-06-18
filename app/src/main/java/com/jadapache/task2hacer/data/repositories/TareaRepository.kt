@@ -1,5 +1,7 @@
-package com.jadapache.task2hacer.data.model
+package com.jadapache.task2hacer.data.repositories
 
+import com.jadapache.task2hacer.data.models.Tarea
+import com.jadapache.task2hacer.data.daos.TareaDao
 import kotlinx.coroutines.flow.Flow
 
 class TareaRepository(private val tareaDao: TareaDao) {
