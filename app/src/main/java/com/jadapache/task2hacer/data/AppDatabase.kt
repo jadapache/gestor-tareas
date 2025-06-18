@@ -1,9 +1,11 @@
-package com.jadapache.task2hacer.data.model
+package com.jadapache.task2hacer.data
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.jadapache.task2hacer.data.models.Tarea
+import com.jadapache.task2hacer.data.daos.TareaDao
 
 @Database(entities = [Tarea::class], version = 1, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {

@@ -1,6 +1,7 @@
-package com.jadapache.task2hacer.data.model
+package com.jadapache.task2hacer.data.daos
 
 import androidx.room.*
+import com.jadapache.task2hacer.data.models.Tarea
 import kotlinx.coroutines.flow.Flow
 
 @Dao

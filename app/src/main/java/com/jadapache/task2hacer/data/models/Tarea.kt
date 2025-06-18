@@ -1,4 +1,4 @@
-package com.jadapache.task2hacer.data.model
+package com.jadapache.task2hacer.data.models
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
