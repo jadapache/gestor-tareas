@@ -12,13 +12,7 @@ import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 import androidx.core.content.edit
-
-data class Tarea(
-    val id: Int = 0,
-    val nombre: String,
-    val descripcion: String,
-    val completada: Boolean = false
-)
+import com.jadapache.task2hacer.data.model.Tarea
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val sharedPreferences = application.getSharedPreferences("tareas_prefs", Context.MODE_PRIVATE)
@@ -65,7 +59,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun insertarTarea(nombre: String, descripcion: String) {
         viewModelScope.launch {
             val nuevaTarea = Tarea(
-                id = (_tareas.value.maxOfOrNull { it.id } ?: 0) + 1,
                 nombre = nombre,
                 descripcion = descripcion
             )
