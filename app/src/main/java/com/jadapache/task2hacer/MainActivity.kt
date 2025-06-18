@@ -11,20 +11,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -60,6 +56,9 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
+import com.jadapache.task2hacer.data.model.Tarea
+import com.jadapache.task2hacer.screens.FormularioScreen
+import com.jadapache.task2hacer.screens.EditarTareaScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -185,34 +184,30 @@ fun TareaCard(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clickable {
-                // Aquí, si la tarea está completada y haces clic, puedes decidir si quieres editarla
-                // o si el clic solo "desmarca" la tarea.
-                // Por ahora, navegaremos a la edición si la tarea está pendiente,
-                // y la desmarcaremos si ya está completada (como en tu imagen de referencia, el click en completada desmarca).
-                if (tarea.completada) {
+                       if (tarea.completada) {
                     viewModel.marcarTarea(tarea.id, false)
                     onToastMessage("Tarea reasignada")
                 } else {
                     navController.navigate("editar/${tarea.id}")
                 }
             }
-            .heightIn(max = 120.dp) // Restringe la altura máxima de la tarjeta
-            .alpha(if (tarea.completada) 0.6f else 1.0f), // Opacidad: 60% si completada, 100% si pendiente
+            .heightIn(max = 120.dp)
+            .alpha(if (tarea.completada) 0.6f else 1.0f),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        Row( // Esta Row es la estructura principal de las columnas
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp), // Padding interno para toda la tarjeta
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Columna 1: Checkbox
             Column(
                 modifier = Modifier
-                    .padding(end = 8.dp) // Espacio a la derecha del checkbox
-                    .align(Alignment.CenterVertically) // Alineación vertical al centro de la Row principal
+                    .padding(end = 8.dp)
+                    .align(Alignment.CenterVertically)
             ) {
                 Checkbox(
                     checked = tarea.completada,
@@ -221,22 +216,18 @@ fun TareaCard(
                         onToastMessage(if (checked) "Tarea completada" else "Tarea reasignada")
                     },
                     modifier = Modifier
-                    // El checkbox ya tiene un tamaño inherente y padding.
-                    // Al quitarle cualquier padding extra que no sea el end,
-                    // y permitir que la columna padre lo centre, suele funcionar bien.
                 )
             }
 
             // Columna 2: Nombre, Descripción y Fecha
             Column(
                 modifier = Modifier
-                    .weight(1f) // Ocupa el espacio restante
-                    .align(Alignment.CenterVertically) // Alineación vertical al centro de la Row principal
+                    .weight(1f)
+                    .align(Alignment.CenterVertically)
             ) {
                 Text(
                     text = tarea.nombre,
                     style = MaterialTheme.typography.titleMedium.copy(
-                        // No TextDecoration.LineThrough
                         fontWeight = FontWeight.Bold
                     )
                 )
@@ -269,129 +260,6 @@ fun TareaCard(
                         contentDescription = "Eliminar tarea",
                         tint = Color.Red
                     )
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun FormularioScreen(navController: NavController, viewModel: MainViewModel) {
-    var nombre by remember { mutableStateOf("") }
-    var descripcion by remember { mutableStateOf("") }
-    var toastMessage by remember { mutableStateOf("") }
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Registrar Tarea") })
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-                .padding(horizontal = 16.dp)
-                .imePadding(),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(10.dp))
-            OutlinedTextField(
-                value = nombre,
-                onValueChange = { nombre = it },
-                label = { Text("Nombre") },
-                placeholder = { Text("Ej: Diseño de UI App") },
-                supportingText = { Text("Se sugiere un nombre conciso") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-            OutlinedTextField(
-                value = descripcion,
-                onValueChange = { descripcion = it },
-                label = { Text("Descripción") },
-                placeholder = { Text("Ej: hacer aplicación móvil") },
-                supportingText = { Text("Incluya información tanto considere necesario") },
-                modifier = Modifier.fillMaxWidth(),
-                minLines = 5,
-                maxLines = 10
-            )
-            Spacer(modifier = Modifier.height(15.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
-                Button(onClick = { navController.popBackStack()},
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)) {
-                    Text("Volver")
-                }
-                Button(onClick = { viewModel.insertarTarea(nombre, descripcion)
-                                    toastMessage = "Nueva tarea agregada"
-                                    navController.popBackStack() },
-                       modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary ),
-                        enabled = nombre.isNotBlank()) {
-                    Text("Guardar")
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun EditarTareaScreen(navController: NavController, viewModel: MainViewModel, tareaId: Int) {
-    val tarea = viewModel.tareas.collectAsState().value.find { it.id == tareaId }
-    var nombre by remember { mutableStateOf(tarea?.nombre ?: "") }
-    var descripcion by remember { mutableStateOf(tarea?.descripcion ?: "") }
-    var toastMessage by remember { mutableStateOf("") }
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Editar Tarea") })
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-                .padding(horizontal = 16.dp)
-                .imePadding(),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(10.dp))
-            OutlinedTextField(
-                value = nombre,
-                onValueChange = { nombre = it },
-                label = { Text("Nombre") },
-                placeholder = { Text("Ej: Diseño de UI App") },
-                supportingText = { Text("Se sugiere un nombre conciso") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-            OutlinedTextField(
-                value = descripcion,
-                onValueChange = { descripcion = it },
-                label = { Text("Descripción") },
-                placeholder = { Text("Ej: hacer aplicación móvil") },
-                supportingText = { Text("Incluya información tanto considere necesario") },
-                modifier = Modifier.fillMaxWidth(),
-                minLines = 5,
-                maxLines = 10
-            )
-            Spacer(modifier = Modifier.height(15.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
-                Button(onClick = { navController.popBackStack()},
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)) {
-                    Text("Regresar")
-                }
-                Button(onClick = {
-                    viewModel.modificarTarea(tareaId, nombre, descripcion)
-                    toastMessage = "Tarea modificada"
-                    navController.popBackStack()
-                },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary ),
-                    enabled = nombre.isNotBlank()) {
-                    Text("Actualizar")
                 }
             }
         }
