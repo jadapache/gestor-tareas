@@ -1,4 +1,4 @@
-package com.jadapache.task2hacer
+package com.jadapache.task2hacer.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
