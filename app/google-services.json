@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1037324105862",
+    "project_id": "task2hacer",
+    "storage_bucket": "task2hacer.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1037324105862:android:a987e2f9ff451f5d353907",
+        "android_client_info": {
+          "package_name": "com.jadapache.task2hacer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDo8idAWgjKg_e_isKYs7oShHJWurRCS-M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
