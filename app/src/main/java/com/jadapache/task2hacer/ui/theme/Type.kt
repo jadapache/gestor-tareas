@@ -1,4 +1,4 @@
-package com.example.gestordetareas.ui.theme
+package com.jadapache.task2hacer.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
