@@ -1,4 +1,4 @@
-package com.example.gestordetareas
+package com.jadapache.task2hacer
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

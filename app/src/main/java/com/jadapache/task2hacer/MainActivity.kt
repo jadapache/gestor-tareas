@@ -1,4 +1,4 @@
-package com.example.gestordetareas
+package com.jadapache.task2hacer
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -37,7 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.gestordetareas.ui.theme.GestorDeTareasTheme
+import com.jadapache.task2hacer.ui.theme.GestorDeTareasTheme
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
