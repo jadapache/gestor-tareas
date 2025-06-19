@@ -5,9 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.jadapache.task2hacer.data.Task2HacerDB
 import com.jadapache.task2hacer.data.repository.TareaRepository
-import com.jadapache.task2hacer.data.repository.TareaRepositoryFirebaseImpl
+import com.jadapache.task2hacer.data.repository.TareaRepositoryFirebase
 import com.jadapache.task2hacer.data.repository.UsuarioRepository
-import com.jadapache.task2hacer.data.repository.UsuarioRepositoryFirebaseImpl
+import com.jadapache.task2hacer.data.repository.UsuarioRepositoryFirebase
 
 class ViewModelFactory(
     private val application: Application
@@ -25,8 +25,8 @@ class ViewModelFactory(
         val usuarioRepositoryLocal = UsuarioRepository(usuarioDao)
 
         // Crear instancias de los repositorios de Firebase
-        val tareaRepositoryFirebase = TareaRepositoryFirebaseImpl()
-        val usuarioRepositoryFirebase = UsuarioRepositoryFirebaseImpl()
+        val tareaRepositoryFirebase = TareaRepositoryFirebase()
+        val usuarioRepositoryFirebase = UsuarioRepositoryFirebase()
 
         return when {
             modelClass.isAssignableFrom(MainViewModel::class.java) -> {
