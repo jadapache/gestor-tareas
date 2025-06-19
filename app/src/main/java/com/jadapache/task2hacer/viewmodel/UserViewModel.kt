@@ -33,7 +33,12 @@ class UserViewModel(
     fun loginUser(email: String, password: String) {
         viewModelScope.launch {
             val result = repository.loginUser(email, password)
-            _usuario.value = result.getOrNull()
+            val user = result.getOrNull()
+            _usuario.value = user
+            // Si el login fue exitoso y se usó Firebase, guardar usuario en local
+            if (user != null && repository === usuarioRepositoryFirebase) {
+                usuarioRepositoryLocal.insertUser(user)
+            }
         }
     }
 

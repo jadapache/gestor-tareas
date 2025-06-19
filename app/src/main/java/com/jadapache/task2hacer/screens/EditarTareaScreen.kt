@@ -7,12 +7,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.jadapache.task2hacer.viewmodel.MainViewModel
+import com.jadapache.task2hacer.viewmodel.TareasViewModel
 import com.jadapache.task2hacer.data.models.Tarea
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditarTareaScreen(navController: NavController, viewModel: MainViewModel, tarea: Tarea) {
+fun EditarTareaScreen(navController: NavController, viewModel: TareasViewModel, tarea: Tarea) {
     var nombre by remember { mutableStateOf(tarea.nombre) }
     var descripcion by remember { mutableStateOf(tarea.descripcion) }
     var toastMessage by remember { mutableStateOf("") }

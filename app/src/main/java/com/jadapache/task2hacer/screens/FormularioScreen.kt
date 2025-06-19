@@ -8,11 +8,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.jadapache.task2hacer.data.models.Tarea
-import com.jadapache.task2hacer.viewmodel.MainViewModel
+import com.jadapache.task2hacer.viewmodel.TareasViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FormularioScreen(navController: NavController, viewModel: MainViewModel) {
+fun FormularioScreen(navController: NavController, viewModel: TareasViewModel) {
     var nombre by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
     var toastMessage by remember { mutableStateOf("") }
