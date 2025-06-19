@@ -1,7 +1,7 @@
 package com.jadapache.task2hacer.data.repository
 
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.firestore.FirebaseFirestore
 import com.jadapache.task2hacer.data.models.Tarea
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -9,39 +9,37 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
 class TareaRepositoryFirebase : ITareaRepository {
-    private val db = FirebaseDatabase.getInstance().getReference("tareas")
+    private val db = FirebaseFirestore.getInstance().collection("tareas")
     private val auth = FirebaseAuth.getInstance()
 
     override fun getAllTareas(): Flow<List<Tarea>> = callbackFlow {
-        val listener = db.addValueEventListener(object : com.google.firebase.database.ValueEventListener {
-            override fun onDataChange(snapshot: com.google.firebase.database.DataSnapshot) {
-                val tareas = snapshot.children.mapNotNull { it.getValue(Tarea::class.java) }
-                trySend(tareas)
+        val listener = db.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(error)
+                return@addSnapshotListener
             }
-            override fun onCancelled(error: com.google.firebase.database.DatabaseError) {
-                close(error.toException())
-            }
-        })
-        awaitClose { db.removeEventListener(listener) }
+            val tareas = snapshot?.toObjects(Tarea::class.java) ?: emptyList()
+            trySend(tareas)
+        }
+        awaitClose { listener.remove() }
     }
 
     override fun getAllTareasByUser(userId: String): Flow<List<Tarea>> = callbackFlow {
-        val listener = db.orderByChild("userId").equalTo(userId)
-            .addValueEventListener(object : com.google.firebase.database.ValueEventListener {
-                override fun onDataChange(snapshot: com.google.firebase.database.DataSnapshot) {
-                    val tareas = snapshot.children.mapNotNull { it.getValue(Tarea::class.java) }
-                    trySend(tareas)
-                }
-                override fun onCancelled(error: com.google.firebase.database.DatabaseError) {
-                    close(error.toException())
-                }
-            })
-        awaitClose { db.removeEventListener(listener) }
+        val query = db.whereEqualTo("userId", userId)
+        val listener = query.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(error)
+                return@addSnapshotListener
+            }
+            val tareas = snapshot?.toObjects(Tarea::class.java) ?: emptyList()
+            trySend(tareas)
+        }
+        awaitClose { listener.remove() }
     }
 
     override suspend fun insertTarea(tarea: Tarea): Boolean {
         return try {
-            db.child(tarea.id).setValue(tarea).await()
+            db.document(tarea.id).set(tarea).await()
             true
         } catch (e: Exception) {
             false
@@ -63,7 +61,7 @@ class TareaRepositoryFirebase : ITareaRepository {
 
     override suspend fun deleteTarea(tarea: Tarea): Boolean {
         return try {
-            db.child(tarea.id).removeValue().await()
+            db.document(tarea.id).delete().await()
             true
         } catch (e: Exception) {
             false
@@ -81,8 +79,8 @@ class TareaRepositoryFirebase : ITareaRepository {
 
     override suspend fun deleteAllTareasForUser(userId: String): Boolean {
         return try {
-            val snapshot = db.orderByChild("userId").equalTo(userId).get().await()
-            val tareas = snapshot.children.mapNotNull { it.getValue(Tarea::class.java) }
+            val snapshot = db.whereEqualTo("userId", userId).get().await()
+            val tareas = snapshot.toObjects(Tarea::class.java)
             tareas.forEach { deleteTarea(it) }
             true
         } catch (e: Exception) {

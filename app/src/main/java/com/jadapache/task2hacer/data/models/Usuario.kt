@@ -9,5 +9,6 @@ data class Usuario(
     val id: String,
     val email: String,
     val pass: String,
-    var ultimaActualizacion: Long? = null
+    var fullname: String,
+    var ultimaMod: Long = System.currentTimeMillis()
 ) 

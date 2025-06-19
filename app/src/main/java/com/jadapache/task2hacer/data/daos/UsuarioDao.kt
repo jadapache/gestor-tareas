@@ -18,6 +18,12 @@ interface UsuarioDao {
     @Query("SELECT * FROM usuarios WHERE email = :email LIMIT 1")
     suspend fun getUserByEmail(email: String): Usuario?
 
+    @Query("SELECT * FROM usuarios")
+    fun getAllUsers(): List<Usuario>
+
+    @Query("SELECT * FROM usuarios LIMIT 1")
+    fun getFirstUser(): Usuario?
+
     @Query("SELECT * FROM usuarios WHERE id = :uid")
     fun observeUserById(uid: String): Flow<Usuario?>
 

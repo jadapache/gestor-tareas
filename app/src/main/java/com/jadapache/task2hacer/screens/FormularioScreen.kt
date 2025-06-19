@@ -7,6 +7,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.google.firebase.auth.FirebaseAuth
 import com.jadapache.task2hacer.data.models.Tarea
 import com.jadapache.task2hacer.viewmodel.TareasViewModel
 
@@ -16,6 +17,7 @@ fun FormularioScreen(navController: NavController, viewModel: TareasViewModel) {
     var nombre by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
     var toastMessage by remember { mutableStateOf("") }
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Registrar Tarea") })
@@ -57,7 +59,7 @@ fun FormularioScreen(navController: NavController, viewModel: TareasViewModel) {
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)) {
                     Text("Volver")
                 }
-                Button(onClick = { viewModel.insertarTarea(tarea = Tarea(nombre = nombre, descripcion = descripcion))
+                Button(onClick = { viewModel.insertarTarea(tarea = Tarea(nombre = nombre, descripcion = descripcion, userId = userId.toString()))
                                     toastMessage = "Nueva tarea agregada"
                                     navController.popBackStack() },
                        modifier = Modifier.weight(1f),

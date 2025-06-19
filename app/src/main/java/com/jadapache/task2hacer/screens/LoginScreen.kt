@@ -1,3 +1,6 @@
+package com.jadapache.task2hacer.screens
+
+
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -88,13 +91,8 @@ fun LoginScreen(navController: NavController, auth: FirebaseAuth) {
             }
         }
 
-        errorMessage?.let {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(it, color = MaterialTheme.colorScheme.error)
-        }
-
         Spacer(modifier = Modifier.height(16.dp))
-        TextButton(onClick = { navController.navigate("registration") }) {
+        TextButton(onClick = { navController.navigate("registro") }) {
             Text("¿No tienes cuenta? Regístrate aquí")
         }
     }
