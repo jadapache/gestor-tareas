@@ -9,26 +9,25 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import com.jadapache.task2hacer.data.models.Tarea
 import com.jadapache.task2hacer.data.repository.TareaRepository
-import com.jadapache.task2hacer.data.repository.TareaRepositoryFirebaseImpl
+import com.jadapache.task2hacer.data.repository.TareaRepositoryFirebase
 import com.jadapache.task2hacer.utils.isInternetAvailable
 import kotlinx.coroutines.flow.Flow
 
 class MainViewModel(
     application: Application,
     private val tareaRepositoryLocal: TareaRepository,
-    private val tareaRepositoryFirebase: TareaRepositoryFirebaseImpl
+    private val tareaRepositoryFirebase: TareaRepositoryFirebase
 ) : AndroidViewModel(application) {
-    private val repository: Any
+    // Usa la función importada y pasa el contexto de la aplicación
+    private val repository: Any = if (isInternetAvailable(application.applicationContext)) {
+        tareaRepositoryFirebase
+    } else {
+        tareaRepositoryLocal // Asumo que este era el repositorio para el caso 'else'
+    }
     val tareas: StateFlow<List<Tarea>>
     var tareaSeleccionada: Tarea? = null
 
     init {
-        // Usa la función importada y pasa el contexto de la aplicación
-        repository = if (isInternetAvailable(application.applicationContext)) {
-            tareaRepositoryFirebase
-        } else {
-            tareaRepositoryLocal // Asumo que este era el repositorio para el caso 'else'
-        }
 
         // Esta inicialización de 'tareas' debe estar fuera del 'else'
         // y debe usar el 'repository' que acabas de asignar.
@@ -40,7 +39,7 @@ class MainViewModel(
     }
 
     private fun getAllTareas(): Flow<List<Tarea>> {
-        return if (repository is TareaRepositoryFirebaseImpl) {
+        return if (repository is TareaRepositoryFirebase) {
             // Aquí deberías obtener el userId actual de Firebase Auth
             val userId = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: ""
             repository.getAllTareasByUser(userId)
@@ -56,7 +55,7 @@ class MainViewModel(
     // Métodos CRUD adaptados para ambos repositorios
     fun insertarTarea(tarea: Tarea) {
         viewModelScope.launch {
-            if (repository is TareaRepositoryFirebaseImpl) {
+            if (repository is TareaRepositoryFirebase) {
                 repository.insertTarea(tarea)
             } else if (repository is TareaRepository) {
                 repository.insertTarea(tarea)
@@ -65,7 +64,7 @@ class MainViewModel(
     }
     fun modificarTarea(tarea: Tarea) {
         viewModelScope.launch {
-            if (repository is TareaRepositoryFirebaseImpl) {
+            if (repository is TareaRepositoryFirebase) {
                 repository.updateTarea(tarea)
             } else if (repository is TareaRepository) {
                 repository.updateTarea(tarea)
@@ -74,7 +73,7 @@ class MainViewModel(
     }
     fun eliminarTarea(tarea: Tarea) {
         viewModelScope.launch {
-            if (repository is TareaRepositoryFirebaseImpl) {
+            if (repository is TareaRepositoryFirebase) {
                 repository.deleteTarea(tarea)
             } else if (repository is TareaRepository) {
                 repository.deleteTarea(tarea)
@@ -83,7 +82,7 @@ class MainViewModel(
     }
     fun marcarTarea(tarea: Tarea, completada: Boolean) {
         viewModelScope.launch {
-            if (repository is TareaRepositoryFirebaseImpl) {
+            if (repository is TareaRepositoryFirebase) {
                 repository.updateTarea(tarea.copy(completada = completada))
             } else if (repository is TareaRepository) {
                 repository.updateTarea(tarea.copy(completada = completada))
