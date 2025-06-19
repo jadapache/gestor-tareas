@@ -1,3 +1,5 @@
+package com.jadapache.task2hacer.screens
+
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -12,13 +14,15 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
-import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(navController: NavController, auth: FirebaseAuth) {
+fun RegisterScreen(navController: NavController, auth: FirebaseAuth) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
@@ -30,7 +34,7 @@ fun LoginScreen(navController: NavController, auth: FirebaseAuth) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Iniciar Sesión", style = MaterialTheme.typography.headlineMedium)
+        Text("Crear Cuenta", style = MaterialTheme.typography.headlineMedium)
         Spacer(modifier = Modifier.height(32.dp))
 
         OutlinedTextField(
@@ -47,6 +51,14 @@ fun LoginScreen(navController: NavController, auth: FirebaseAuth) {
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth()
         )
+        Spacer(modifier = Modifier.height(16.dp))
+        OutlinedTextField(
+            value = confirmPassword,
+            onValueChange = { confirmPassword = it },
+            label = { Text("Confirmar Contraseña") },
+            visualTransformation = PasswordVisualTransformation(),
+            modifier = Modifier.fillMaxWidth()
+        )
         Spacer(modifier = Modifier.height(24.dp))
 
         if (isLoading) {
@@ -54,29 +66,34 @@ fun LoginScreen(navController: NavController, auth: FirebaseAuth) {
         } else {
             Button(
                 onClick = {
-                    if (email.isBlank() || password.isBlank()) {
-                        errorMessage = "Correo y contraseña no pueden estar vacíos."
+                    if (email.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
+                        errorMessage = "Todos los campos son obligatorios."
+                        return@Button
+                    }
+                    if (password != confirmPassword) {
+                        errorMessage = "Las contraseñas no coinciden."
                         return@Button
                     }
                     isLoading = true
                     errorMessage = null
-                    auth.signInWithEmailAndPassword(email, password)
+                    auth.createUserWithEmailAndPassword(email, password)
                         .addOnCompleteListener { task ->
                             isLoading = false
                             if (task.isSuccessful) {
-                                // Usuario autenticado, navegar a la pantalla principal
+                                // Usuario registrado y autenticado, navegar a la pantalla principal
+                                Toast.makeText(context, "Registro exitoso.", Toast.LENGTH_SHORT).show()
                                 navController.navigate("principal") {
-                                    // Limpiar el backstack para que el usuario no pueda volver a login con el botón de atrás
                                     popUpTo(navController.graph.startDestinationId) { inclusive = true }
-                                    launchSingleTop = true // Evitar múltiples instancias de la pantalla principal
+                                    launchSingleTop = true
                                 }
                             } else {
-                                // Error en el inicio de sesión
+                                // Error en el registro
                                 val exception = task.exception
                                 errorMessage = when (exception) {
-                                    is FirebaseAuthInvalidUserException -> "No existe una cuenta con este correo electrónico."
-                                    is FirebaseAuthInvalidCredentialsException -> "Contraseña incorrecta."
-                                    else -> "Error de autenticación: ${exception?.message}"
+                                    is FirebaseAuthWeakPasswordException -> "La contraseña es demasiado débil. Debe tener al menos 6 caracteres."
+                                    is FirebaseAuthInvalidCredentialsException -> "El formato del correo electrónico no es válido."
+                                    is FirebaseAuthUserCollisionException -> "Ya existe una cuenta con este correo electrónico."
+                                    else -> "Error de registro: ${exception?.message}"
                                 }
                                 Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
                             }
@@ -84,18 +101,16 @@ fun LoginScreen(navController: NavController, auth: FirebaseAuth) {
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Iniciar Sesión")
+                Text("Registrarse")
             }
         }
-
         errorMessage?.let {
             Spacer(modifier = Modifier.height(16.dp))
             Text(it, color = MaterialTheme.colorScheme.error)
         }
-
         Spacer(modifier = Modifier.height(16.dp))
-        TextButton(onClick = { navController.navigate("registration") }) {
-            Text("¿No tienes cuenta? Regístrate aquí")
+        TextButton(onClick = { navController.navigate("login") { popUpTo("login") { inclusive = true } } }) {
+            Text("¿Ya tienes cuenta? Inicia sesión aquí")
         }
     }
 }

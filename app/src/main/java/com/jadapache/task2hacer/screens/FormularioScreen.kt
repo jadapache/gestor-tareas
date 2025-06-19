@@ -7,6 +7,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.jadapache.task2hacer.data.models.Tarea
 import com.jadapache.task2hacer.viewmodel.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,7 +57,7 @@ fun FormularioScreen(navController: NavController, viewModel: MainViewModel) {
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)) {
                     Text("Volver")
                 }
-                Button(onClick = { viewModel.insertarTarea(nombre, descripcion)
+                Button(onClick = { viewModel.insertarTarea(tarea = Tarea(nombre = nombre, descripcion = descripcion))
                                     toastMessage = "Nueva tarea agregada"
                                     navController.popBackStack() },
                        modifier = Modifier.weight(1f),

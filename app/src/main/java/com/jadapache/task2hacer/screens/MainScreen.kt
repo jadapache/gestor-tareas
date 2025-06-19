@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material3.*
@@ -21,12 +22,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import com.google.firebase.auth.FirebaseAuth
 import com.jadapache.task2hacer.data.models.Tarea
 import com.jadapache.task2hacer.viewmodel.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(navController: NavHostController, viewModel: MainViewModel) {
+    val auth = FirebaseAuth.getInstance()
     val tasks by viewModel.tareas.collectAsState()
     val context = LocalContext.current
     var toastMessage by remember { mutableStateOf("") }
@@ -38,7 +41,23 @@ fun MainScreen(navController: NavHostController, viewModel: MainViewModel) {
     val completedTasks = tasks.filter { it.completada }
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(stringResource(id = com.jadapache.task2hacer.R.string.app_name)) })
+            TopAppBar(
+                title = { Text(stringResource(id = com.jadapache.task2hacer.R.string.app_name)) },
+                actions = {
+                    IconButton(onClick = {
+                        auth.signOut() // Cerrar sesión
+                        navController.navigate("login") { // Navegar a login
+                            popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ExitToApp,
+                            contentDescription = "Cerrar Sesión"
+                        )
+                    }
+                }
+            )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { navController.navigate("formulario") }) {
@@ -113,7 +132,7 @@ fun TareaCard(
             text = { Text("¿Está seguro que desea eliminar la tarea '${tarea.nombre}'?") },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.eliminarTarea(tarea.id)
+                    viewModel.eliminarTarea(tarea)
                     onToastMessage("Tarea eliminada")
                     showDialog = false
                 }) {
@@ -134,10 +153,11 @@ fun TareaCard(
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clickable {
                 if (tarea.completada) {
-                    viewModel.marcarTarea(tarea.id, false)
+                    viewModel.marcarTarea(tarea, false)
                     onToastMessage("Tarea reasignada")
                 } else {
-                    navController.navigate("editar/${tarea.id}")
+                    viewModel.tareaSeleccionada = tarea
+                    navController.navigate("editar")
                 }
             }
             .heightIn(max = 120.dp)
@@ -161,7 +181,7 @@ fun TareaCard(
                 Checkbox(
                     checked = tarea.completada,
                     onCheckedChange = { checked ->
-                        viewModel.marcarTarea(tarea.id, checked)
+                        viewModel.marcarTarea(tarea, checked)
                         onToastMessage(if (checked) "Tarea completada" else "Tarea reasignada")
                     },
                     modifier = Modifier

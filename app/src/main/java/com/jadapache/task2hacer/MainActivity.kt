@@ -1,5 +1,6 @@
 package com.jadapache.task2hacer
 
+import android.app.Application
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -61,6 +62,8 @@ import com.jadapache.task2hacer.screens.FormularioScreen
 import com.jadapache.task2hacer.screens.EditarTareaScreen
 import com.jadapache.task2hacer.viewmodel.MainViewModel
 import com.jadapache.task2hacer.screens.MainScreen
+import com.jadapache.task2hacer.viewmodel.ViewModelFactory
+import com.jadapache.task2hacer.viewmodel.UserViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,18 +82,24 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
-    val viewModel: MainViewModel = viewModel(factory = MainViewModel.provideFactory(LocalContext.current.applicationContext as android.app.Application))
+    val context = LocalContext.current.applicationContext as Application
+    val factory = ViewModelFactory(context)
+    val mainViewModel: MainViewModel = viewModel(factory = factory)
+    val userViewModel: UserViewModel = viewModel(factory = factory)
+
     NavHost(navController = navController, startDestination = "principal") {
         composable("principal") {
-            MainScreen(navController, viewModel)
+            MainScreen(navController, mainViewModel)
         }
         composable("formulario") {
-            FormularioScreen(navController, viewModel)
+            FormularioScreen(navController, mainViewModel)
         }
-        composable("editar/{id}") { backStackEntry ->
-            val id = backStackEntry.arguments?.getString("id")?.toIntOrNull()
-            if (id != null) {
-                EditarTareaScreen(navController, viewModel, id)
+        composable("editar") {
+            val tarea = mainViewModel.tareaSeleccionada
+            if (tarea != null) {
+                EditarTareaScreen(navController, mainViewModel, tarea)
+            } else {
+                navController.popBackStack()
             }
         }
     }
