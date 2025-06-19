@@ -8,13 +8,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.jadapache.task2hacer.viewmodel.MainViewModel
+import com.jadapache.task2hacer.data.models.Tarea
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditarTareaScreen(navController: NavController, viewModel: MainViewModel, tareaId: Int) {
-    val tarea = viewModel.tareas.collectAsState().value.find { it.id == tareaId }
-    var nombre by remember { mutableStateOf(tarea?.nombre ?: "") }
-    var descripcion by remember { mutableStateOf(tarea?.descripcion ?: "") }
+fun EditarTareaScreen(navController: NavController, viewModel: MainViewModel, tarea: Tarea) {
+    var nombre by remember { mutableStateOf(tarea.nombre) }
+    var descripcion by remember { mutableStateOf(tarea.descripcion) }
     var toastMessage by remember { mutableStateOf("") }
     Scaffold(
         topBar = {
@@ -58,7 +58,7 @@ fun EditarTareaScreen(navController: NavController, viewModel: MainViewModel, ta
                     Text("Regresar")
                 }
                 Button(onClick = {
-                    viewModel.modificarTarea(tareaId, nombre, descripcion)
+                    viewModel.modificarTarea(tarea.copy(nombre = nombre, descripcion = descripcion))
                     toastMessage = "Tarea modificada"
                     navController.popBackStack()
                 },

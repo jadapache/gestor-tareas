@@ -2,72 +2,93 @@ package com.jadapache.task2hacer.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import com.jadapache.task2hacer.data.models.Tarea
-import com.jadapache.task2hacer.data.repositories.TareaRepository
-import com.jadapache.task2hacer.data.AppDatabase
+import com.jadapache.task2hacer.data.repository.TareaRepository
+import com.jadapache.task2hacer.data.repository.TareaRepositoryFirebaseImpl
+import com.jadapache.task2hacer.utils.isInternetAvailable
+import kotlinx.coroutines.flow.Flow
 
-class MainViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository: TareaRepository
+class MainViewModel(
+    application: Application,
+    private val tareaRepositoryLocal: TareaRepository,
+    private val tareaRepositoryFirebase: TareaRepositoryFirebaseImpl
+) : AndroidViewModel(application) {
+    private val repository: Any
     val tareas: StateFlow<List<Tarea>>
+    var tareaSeleccionada: Tarea? = null
 
     init {
-        val db = AppDatabase.getDatabase(application)
-        repository = TareaRepository(db.tareaDao())
-        tareas = repository.getAllTareas().stateIn(
+        // Usa la función importada y pasa el contexto de la aplicación
+        repository = if (isInternetAvailable(application.applicationContext)) {
+            tareaRepositoryFirebase
+        } else {
+            tareaRepositoryLocal // Asumo que este era el repositorio para el caso 'else'
+        }
+
+        // Esta inicialización de 'tareas' debe estar fuera del 'else'
+        // y debe usar el 'repository' que acabas de asignar.
+        tareas = getAllTareas().stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
     }
 
-    fun insertarTarea(nombre: String, descripcion: String) {
-        viewModelScope.launch {
-            val nuevaTarea = Tarea(nombre = nombre, descripcion = descripcion)
-            repository.insertTarea(nuevaTarea)
+    private fun getAllTareas(): Flow<List<Tarea>> {
+        return if (repository is TareaRepositoryFirebaseImpl) {
+            // Aquí deberías obtener el userId actual de Firebase Auth
+            val userId = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: ""
+            repository.getAllTareasByUser(userId)
+        } else if (repository is TareaRepository) {
+            // Aquí deberías obtener el userId local (si aplica)
+            val userId = "local_user" // Ajusta según tu lógica
+            repository.getAllTareas()
+        } else {
+            throw IllegalStateException("Repositorio no soportado")
         }
     }
-    fun modificarTarea(id: Int, nombre: String, descripcion: String) {
+
+    // Métodos CRUD adaptados para ambos repositorios
+    fun insertarTarea(tarea: Tarea) {
         viewModelScope.launch {
-            val tarea = repository.getTareaById(id)
-            if (tarea != null) {
-                repository.updateTarea(tarea.copy(nombre = nombre, descripcion = descripcion))
+            if (repository is TareaRepositoryFirebaseImpl) {
+                repository.insertTarea(tarea)
+            } else if (repository is TareaRepository) {
+                repository.insertTarea(tarea)
             }
         }
     }
-    fun eliminarTarea(id: Int) {
+    fun modificarTarea(tarea: Tarea) {
         viewModelScope.launch {
-            val tarea = repository.getTareaById(id)
-            if (tarea != null) {
+            if (repository is TareaRepositoryFirebaseImpl) {
+                repository.updateTarea(tarea)
+            } else if (repository is TareaRepository) {
+                repository.updateTarea(tarea)
+            }
+        }
+    }
+    fun eliminarTarea(tarea: Tarea) {
+        viewModelScope.launch {
+            if (repository is TareaRepositoryFirebaseImpl) {
+                repository.deleteTarea(tarea)
+            } else if (repository is TareaRepository) {
                 repository.deleteTarea(tarea)
             }
         }
     }
-    fun marcarTarea(id: Int, completada: Boolean) {
+    fun marcarTarea(tarea: Tarea, completada: Boolean) {
         viewModelScope.launch {
-            val tarea = repository.getTareaById(id)
-            if (tarea != null) {
+            if (repository is TareaRepositoryFirebaseImpl) {
+                repository.updateTarea(tarea.copy(completada = completada))
+            } else if (repository is TareaRepository) {
                 repository.updateTarea(tarea.copy(completada = completada))
             }
         }
     }
 
-    companion object {
-        fun provideFactory(application: Application): ViewModelProvider.Factory =
-            object : ViewModelProvider.Factory {
-                override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
-                        @Suppress("UNCHECKED_CAST")
-                        return MainViewModel(application) as T
-                    }
-                    throw IllegalArgumentException("Unknown ViewModel class")
-                }
-            }
-    }
-} 
+}
