@@ -1,6 +1,9 @@
 package com.jadapache.task2hacer.viewmodel
 
 import android.app.Application
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.jadapache.task2hacer.data.models.Usuario
@@ -8,49 +11,60 @@ import com.jadapache.task2hacer.data.repository.IUsuarioRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import com.jadapache.task2hacer.utils.isInternetAvailable
 
 class UserViewModel(
     application: Application,
-    private val usuarioRepositoryLocal: IUsuarioRepository,
-    private val usuarioRepositoryFirebase: IUsuarioRepository
+    private val usuarioRepository: IUsuarioRepository
 ) : AndroidViewModel(application) {
-    private val repository: IUsuarioRepository = if (isInternetAvailable(application.applicationContext)) {
-        usuarioRepositoryFirebase
-    } else {
-        usuarioRepositoryLocal
-    }
     private val _usuario = MutableStateFlow<Usuario?>(null)
     val usuario: StateFlow<Usuario?> = _usuario
 
-    fun registerUser(email: String, password: String) {
+    var operationError by mutableStateOf<String?>(null)
+        private set
+
+    var isLoading by mutableStateOf(false)
+        private set
+
+
+    fun registerUser(email: String, password: String, fullname: String) {
         viewModelScope.launch {
-            val result = repository.registerUser(email, password)
-            _usuario.value = result.getOrNull()
+            operationError = null
+            isLoading = true
+
+            val result = usuarioRepository.registerUser(email, password, fullname)
+            isLoading = false
+
+            result.fold(
+                onSuccess = { usuario ->
+                    _usuario.value = usuario
+                },
+                onFailure = { exception ->
+                    operationError = exception.message ?: "Error desconocido durante el registro."
+                }
+            )
         }
     }
 
     fun loginUser(email: String, password: String) {
         viewModelScope.launch {
-            val result = repository.loginUser(email, password)
-            val user = result.getOrNull()
-            _usuario.value = user
-            // Si el login fue exitoso y se usó Firebase, guardar usuario en local
-            if (user != null && repository === usuarioRepositoryFirebase) {
-                usuarioRepositoryLocal.insertUser(user)
-            }
+            val result = usuarioRepository.loginUser(email, password)
+            _usuario.value = result.getOrNull()
         }
     }
 
     fun getCurrentUser() {
         viewModelScope.launch {
-            _usuario.value = repository.getCurrentUser()
+            _usuario.value = usuarioRepository.getCurrentUser()
         }
     }
 
     fun deleteUser(usuario: Usuario) {
         viewModelScope.launch {
-            repository.deleteUser(usuario)
+            usuarioRepository.deleteUser(usuario)
         }
+    }
+
+    fun clearRegistrationError() {
+        operationError = null
     }
 }

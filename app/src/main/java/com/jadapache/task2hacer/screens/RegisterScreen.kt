@@ -1,5 +1,6 @@
 package com.jadapache.task2hacer.screens
 
+import android.app.Application
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -11,21 +12,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
-import com.google.firebase.auth.FirebaseAuthUserCollisionException
-import com.google.firebase.auth.FirebaseAuthWeakPasswordException
+import com.jadapache.task2hacer.utils.isInternetAvailable
+import com.jadapache.task2hacer.viewmodel.UserViewModel
+import com.jadapache.task2hacer.viewmodel.ViewModelFactory
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegisterScreen(navController: NavController, auth: FirebaseAuth) {
+fun RegisterScreen(navController: NavController) {
+    var fullname by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    val context = LocalContext.current
+    val context = LocalContext.current.applicationContext as Application
+    val factory = ViewModelFactory(context)
+    val userViewModel: UserViewModel = viewModel(factory = factory)
+    val usuario by userViewModel.usuario.collectAsState()
+    val registrationError = userViewModel.operationError
+
 
     Column(
         modifier = Modifier
@@ -59,6 +65,13 @@ fun RegisterScreen(navController: NavController, auth: FirebaseAuth) {
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth()
         )
+        Spacer(modifier = Modifier.height(16.dp))
+        OutlinedTextField(
+            value = fullname,
+            onValueChange = { fullname = it },
+            label = { Text("Nombre Completo") },
+            modifier = Modifier.fillMaxWidth()
+        )
         Spacer(modifier = Modifier.height(24.dp))
 
         if (isLoading) {
@@ -66,7 +79,7 @@ fun RegisterScreen(navController: NavController, auth: FirebaseAuth) {
         } else {
             Button(
                 onClick = {
-                    if (email.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
+                    if (email.isBlank() || password.isBlank() || confirmPassword.isBlank() || fullname.isBlank()) {
                         errorMessage = "Todos los campos son obligatorios."
                         return@Button
                     }
@@ -76,41 +89,51 @@ fun RegisterScreen(navController: NavController, auth: FirebaseAuth) {
                     }
                     isLoading = true
                     errorMessage = null
-                    auth.createUserWithEmailAndPassword(email, password)
-                        .addOnCompleteListener { task ->
-                            isLoading = false
-                            if (task.isSuccessful) {
-                                // Usuario registrado y autenticado, navegar a la pantalla principal
-                                Toast.makeText(context, "Registro exitoso.", Toast.LENGTH_SHORT).show()
-                                navController.navigate("principal") {
-                                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                            } else {
-                                // Error en el registro
-                                val exception = task.exception
-                                errorMessage = when (exception) {
-                                    is FirebaseAuthWeakPasswordException -> "La contraseña es demasiado débil. Debe tener al menos 6 caracteres."
-                                    is FirebaseAuthInvalidCredentialsException -> "El formato del correo electrónico no es válido."
-                                    is FirebaseAuthUserCollisionException -> "Ya existe una cuenta con este correo electrónico."
-                                    else -> "Error de registro: ${exception?.message}"
-                                }
-                                Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
-                            }
-                        }
+                    isLoading = true
+                    errorMessage = null
+                    if (!isInternetAvailable(context)) {
+                        isLoading = false
+                        errorMessage = "Sin conexión a internet."
+                        return@Button
+                    }
+                    userViewModel.registerUser(email, password, fullname)
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Registrarse")
             }
         }
-        errorMessage?.let {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(it, color = MaterialTheme.colorScheme.error)
-        }
         Spacer(modifier = Modifier.height(16.dp))
         TextButton(onClick = { navController.navigate("login") { popUpTo("login") { inclusive = true } } }) {
             Text("¿Ya tienes cuenta? Inicia sesión aquí")
         }
     }
+
+    LaunchedEffect(usuario) {
+        if (usuario != null) {
+            Toast.makeText(context, "Registro exitoso.", Toast.LENGTH_SHORT).show()
+            navController.navigate("principal") {
+                popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                launchSingleTop = true
+            }
+        }
+    }
+
+    LaunchedEffect(registrationError) {
+        if (!registrationError.isNullOrBlank()) {
+            isLoading = false
+            Toast.makeText(context, registrationError, Toast.LENGTH_LONG).show()
+            userViewModel.clearRegistrationError()
+        }
+    }
+
+
+    LaunchedEffect(errorMessage) {
+        if (errorMessage != null && errorMessage!!.isNotBlank()) {
+            Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+        }
+    }
+
+
+
 }
