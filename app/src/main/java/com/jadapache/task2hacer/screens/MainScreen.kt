@@ -24,11 +24,11 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.google.firebase.auth.FirebaseAuth
 import com.jadapache.task2hacer.data.models.Tarea
-import com.jadapache.task2hacer.viewmodel.MainViewModel
+import com.jadapache.task2hacer.viewmodel.TareasViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(navController: NavHostController, viewModel: MainViewModel) {
+fun MainScreen(navController: NavHostController, viewModel: TareasViewModel) {
     val auth = FirebaseAuth.getInstance()
     val tasks by viewModel.tareas.collectAsState()
     val context = LocalContext.current
@@ -120,7 +120,7 @@ fun MainScreen(navController: NavHostController, viewModel: MainViewModel) {
 fun TareaCard(
     tarea: Tarea,
     navController: NavController,
-    viewModel: MainViewModel,
+    viewModel: TareasViewModel,
     onToastMessage: (String) -> Unit
 ) {
     var showDialog by remember { mutableStateOf(false) }

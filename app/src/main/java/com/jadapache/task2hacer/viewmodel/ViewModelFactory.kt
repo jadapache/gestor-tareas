@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.jadapache.task2hacer.data.Task2HacerDB
 import com.jadapache.task2hacer.data.repository.TareaRepository
 import com.jadapache.task2hacer.data.repository.TareaRepositoryFirebase
+import com.jadapache.task2hacer.data.repository.TareaRepositorySync
 import com.jadapache.task2hacer.data.repository.UsuarioRepository
 import com.jadapache.task2hacer.data.repository.UsuarioRepositoryFirebase
 
@@ -28,9 +29,16 @@ class ViewModelFactory(
         val tareaRepositoryFirebase = TareaRepositoryFirebase()
         val usuarioRepositoryFirebase = UsuarioRepositoryFirebase()
 
+        // Crear el repositorio de sincronización
+        val tareaRepositorySync = TareaRepositorySync(
+            tareaRepositoryLocal,
+            tareaRepositoryFirebase,
+            application.applicationContext
+        )
+
         return when {
-            modelClass.isAssignableFrom(MainViewModel::class.java) -> {
-                MainViewModel(application, tareaRepositoryLocal, tareaRepositoryFirebase) as T
+            modelClass.isAssignableFrom(TareasViewModel::class.java) -> {
+                TareasViewModel(application, tareaRepositorySync) as T
             }
             modelClass.isAssignableFrom(UserViewModel::class.java) -> {
                 UserViewModel(application, usuarioRepositoryLocal, usuarioRepositoryFirebase) as T
