@@ -30,6 +30,7 @@ import com.jadapache.task2hacer.viewmodel.TareasViewModel
 @Composable
 fun MainScreen(navController: NavHostController, viewModel: TareasViewModel) {
     val auth = FirebaseAuth.getInstance()
+    val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
     val tasks by viewModel.tareas.collectAsState()
     val context = LocalContext.current
     var toastMessage by remember { mutableStateOf("") }
@@ -60,7 +61,7 @@ fun MainScreen(navController: NavHostController, viewModel: TareasViewModel) {
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { navController.navigate("formulario") }) {
+            FloatingActionButton(onClick = { navController.navigate("tareaDetail") }) {
                 Icon(Icons.Filled.Add, contentDescription = "Agregar tarea")
             }
         }
@@ -156,8 +157,7 @@ fun TareaCard(
                     viewModel.marcarTarea(tarea, false)
                     onToastMessage("Tarea reasignada")
                 } else {
-                    viewModel.tareaSeleccionada = tarea
-                    navController.navigate("editar")
+                    navController.navigate("tareaDetail?tareaId=${tarea.id}")
                 }
             }
             .heightIn(max = 120.dp)
@@ -225,4 +225,4 @@ fun TareaCard(
             }
         }
     }
-} 
+}

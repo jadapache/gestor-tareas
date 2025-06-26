@@ -12,6 +12,6 @@ data class Tarea(
     var nombre: String = "",
     var descripcion: String = "",
     val completada: Boolean = false,
-    var sincronizado: Boolean = false,
-    var ultimaMod: Long = System.currentTimeMillis()
+    var ultimaMod: Long = System.currentTimeMillis(),
+    var ubicacion: String? = null
 )

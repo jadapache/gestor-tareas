@@ -16,7 +16,6 @@ class TareasViewModel(
     private val tareaRepositorySync: ITareaRepository
 ) : AndroidViewModel(application) {
     val tareas: StateFlow<List<Tarea>>
-    var tareaSeleccionada: Tarea? = null
 
     init {
         tareas = getAllTareas().stateIn(
@@ -28,6 +27,11 @@ class TareasViewModel(
 
     private fun getAllTareas(): Flow<List<Tarea>> {
         return tareaRepositorySync.getAllTareas()
+    }
+
+    fun tareasUsuario(userId: String): StateFlow<List<Tarea>> {
+        return tareaRepositorySync.getAllTareasByUser(userId)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     }
 
     // Métodos CRUD usando solo la interfaz
