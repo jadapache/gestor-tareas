@@ -30,7 +30,7 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.rememberCameraPositionState
-import com.google.maps.android.compose.rememberMarkerState
+import com.google.maps.android.compose.rememberUpdatedMarkerState
 import com.jadapache.task2hacer.data.models.Tarea
 import com.jadapache.task2hacer.utils.formatDate
 import com.jadapache.task2hacer.viewmodel.TareasViewModel
@@ -192,7 +192,7 @@ fun TareaScreen(
                     val cameraPositionState = rememberCameraPositionState {
                         position = CameraPosition.fromLatLngZoom(ubicacion!!, 15f)
                     }
-                    val markerState = rememberMarkerState(position = ubicacion!!)
+                    val markerState = rememberUpdatedMarkerState(position = ubicacion!!)
 
                     LaunchedEffect(ubicacion) {
                         ubicacion?.let {
