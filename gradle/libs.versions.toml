@@ -24,6 +24,7 @@ firebaseDatabaseKtx = "21.0.0"
 maps-compose = "6.6.0"
 playServicesLocation = "21.3.0"
 mapsSecretsGradlePlugin = "2.0.1"
+secretsGradlePlugin = "2.0.1"
 security-crypto = "1.1.0-beta01"
 
 
@@ -59,6 +60,7 @@ firebase-database-ktx = { group = "com.google.firebase", name = "firebase-databa
 maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "maps-compose" }
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 androidx-security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "security-crypto" }
+secrets-gradle-plugin = { module = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin:secrets-gradle-plugin", version.ref = "secretsGradlePlugin" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
