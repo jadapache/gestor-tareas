@@ -1,5 +1,4 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 plugins {
     alias(libs.plugins.android.application)
@@ -42,12 +41,11 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    tasks.withType<KotlinJvmCompile>().configureEach {
+    kotlin {
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_17)
-            freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
+            jvmTarget = JvmTarget.fromTarget("17")
         }
-        }
+    }
 
     buildFeatures {
         compose = true
