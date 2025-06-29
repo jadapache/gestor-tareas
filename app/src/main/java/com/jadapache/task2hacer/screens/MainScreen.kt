@@ -29,9 +29,9 @@ import com.jadapache.task2hacer.viewmodel.TareasViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(navController: NavHostController, viewModel: TareasViewModel) {
-    val auth = FirebaseAuth.getInstance()
-    val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
-    val tasks by viewModel.tareas.collectAsState()
+    val userId = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: ""
+    val tareasFlow = remember(userId) { viewModel.tareasUsuario(userId) }
+    val tasks by tareasFlow.collectAsState()
     val context = LocalContext.current
     var toastMessage by remember { mutableStateOf("") }
     if (toastMessage.isNotEmpty()) {
@@ -46,7 +46,7 @@ fun MainScreen(navController: NavHostController, viewModel: TareasViewModel) {
                 title = { Text(stringResource(id = com.jadapache.task2hacer.R.string.app_name)) },
                 actions = {
                     IconButton(onClick = {
-                        auth.signOut() // Cerrar sesión
+                        FirebaseAuth.getInstance().signOut() // Cerrar sesión
                         navController.navigate("login") { // Navegar a login
                             popUpTo(navController.graph.startDestinationId) { inclusive = true }
                             launchSingleTop = true
