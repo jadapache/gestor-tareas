@@ -16,6 +16,9 @@ import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.jadapache.task2hacer.viewmodel.UserViewModel
+import com.jadapache.task2hacer.viewmodel.ViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,6 +28,10 @@ fun LoginScreen(navController: NavController, auth: FirebaseAuth) {
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
+    val factory = ViewModelFactory(context.applicationContext as android.app.Application)
+    val userViewModel: UserViewModel = viewModel(factory = factory)
+    val usuario by userViewModel.usuario.collectAsState()
+    val operationError = userViewModel.operationError
 
     Column(
         modifier = Modifier
@@ -63,27 +70,7 @@ fun LoginScreen(navController: NavController, auth: FirebaseAuth) {
                     }
                     isLoading = true
                     errorMessage = null
-                    auth.signInWithEmailAndPassword(email, password)
-                        .addOnCompleteListener { task ->
-                            isLoading = false
-                            if (task.isSuccessful) {
-                                // Usuario autenticado, navegar a la pantalla principal
-                                navController.navigate("principal") {
-                                    // Limpiar el backstack para que el usuario no pueda volver a login con el botón de atrás
-                                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
-                                    launchSingleTop = true // Evitar múltiples instancias de la pantalla principal
-                                }
-                            } else {
-                                // Error en el inicio de sesión
-                                val exception = task.exception
-                                errorMessage = when (exception) {
-                                    is FirebaseAuthInvalidUserException -> "No existe una cuenta con este correo electrónico."
-                                    is FirebaseAuthInvalidCredentialsException -> "Contraseña incorrecta."
-                                    else -> "Error de autenticación: ${exception?.message}"
-                                }
-                                Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
-                            }
-                        }
+                    userViewModel.loginUser(email, password)
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -94,6 +81,23 @@ fun LoginScreen(navController: NavController, auth: FirebaseAuth) {
         Spacer(modifier = Modifier.height(16.dp))
         TextButton(onClick = { navController.navigate("registro") }) {
             Text("¿No tienes cuenta? Regístrate aquí")
+        }
+    }
+
+    LaunchedEffect(usuario) {
+        if (usuario != null) {
+            isLoading = false
+            navController.navigate("principal") {
+                popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                launchSingleTop = true
+            }
+        }
+    }
+    LaunchedEffect(operationError) {
+        if (!operationError.isNullOrBlank()) {
+            isLoading = false
+            Toast.makeText(context, operationError, Toast.LENGTH_LONG).show()
+            userViewModel.clearRegistrationError()
         }
     }
 }

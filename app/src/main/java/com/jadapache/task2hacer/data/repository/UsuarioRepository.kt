@@ -6,6 +6,7 @@ import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.firestore.FirebaseFirestore
 import com.jadapache.task2hacer.data.daos.UsuarioDao
 import com.jadapache.task2hacer.data.models.Usuario
+import com.jadapache.task2hacer.utils.AESUtil
 import kotlinx.coroutines.tasks.await
 import java.io.IOException
 
@@ -20,7 +21,7 @@ class UsuarioRepository(
             val result = auth.createUserWithEmailAndPassword(email, password).await()
             val user = result.user
             if (user != null) {
-                val usuario = Usuario(id = user.uid, email = email, pass = password, fullname = fullname)
+                val usuario = Usuario(id = user.uid, email = email, fullname = fullname)
                 db.document(user.uid).set(usuario).await()
                 usuarioDao.insertUser(usuario)
                 Result.success(usuario)
@@ -49,25 +50,31 @@ class UsuarioRepository(
             val result = auth.signInWithEmailAndPassword(email, password).await()
             val user = result.user
             if (user != null) {
+                //Se lee los datos del usuario desde FireStore y se serializa en un objeto Usuario
                 val dataSnapshot = db.document(user.uid).get().await()
-                val usuario = dataSnapshot.toObject(Usuario::class.java)
+                val usuario = try {
+                    dataSnapshot.toObject(Usuario::class.java)
+                } catch (e: Exception) { //Se agrega manejo de excepciones
+                    null
+                }
                 if (usuario != null) {
                     usuarioDao.insertUser(usuario) // Guardar localmente
                     Result.success(usuario)
                 } else {
-                    Result.failure(Exception("Usuario o contraseña invalidos"))
+                    Result.failure(Exception("Error al leer los datos del usuario desde la nube."))
                 }
             } else {
-                Result.failure(Exception("No se pudo iniciar sesión"))
+                Result.failure(Exception("No se pudo iniciar sesión."))
             }
         } catch (e: Exception) {
-            // Si falla por falta de conexión, intentar login local
-            val usuario = usuarioDao.getUserByEmail(email)
-            return if (usuario != null && usuario.pass == password) {
-                Result.success(usuario)
-            } else {
-                Result.failure(Exception("Credenciales incorrectas"))
+            val errorMessage = when (e) {
+                is com.google.firebase.auth.FirebaseAuthInvalidUserException ->
+                    "No existe una cuenta con este correo electrónico."
+                is com.google.firebase.auth.FirebaseAuthInvalidCredentialsException ->
+                    "Email o contraseña incorrecta."
+                else -> e.localizedMessage ?: "Error de autenticación desconocido."
             }
+            Result.failure(Exception(errorMessage))
         }
     }
 
@@ -79,7 +86,6 @@ class UsuarioRepository(
             usuarioDao.insertUser(usuario!!) // Actualizar local
             usuario
         } else {
-            // Si no hay usuario autenticado en Firebase, buscar el último usuario local
             null
         }
     }

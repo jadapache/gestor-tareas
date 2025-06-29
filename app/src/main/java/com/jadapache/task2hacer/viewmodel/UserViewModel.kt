@@ -11,7 +11,6 @@ import com.jadapache.task2hacer.data.repository.IUsuarioRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import com.jadapache.task2hacer.utils.aesUtil
 
 class UserViewModel(
     application: Application,
@@ -32,7 +31,6 @@ class UserViewModel(
             operationError = null
             isLoading = true
 
-            //val encryptedPassword = AESUtil.encryptPassword(getApplication(), password)
             val result = usuarioRepository.registerUser(email, password, fullname)
             isLoading = false
 
@@ -49,9 +47,18 @@ class UserViewModel(
 
     fun loginUser(email: String, password: String) {
         viewModelScope.launch {
-           // val encryptedPassword = AESUtil.encryptPassword(getApplication(), password)
+            operationError = null
+            isLoading = true
             val result = usuarioRepository.loginUser(email, password)
-            _usuario.value = result.getOrNull()
+            isLoading = false
+            result.fold(
+                onSuccess = { usuario ->
+                    _usuario.value = usuario
+                },
+                onFailure = { exception ->
+                    operationError = exception.message ?: "Error desconocido durante el login."
+                }
+            )
         }
     }
 

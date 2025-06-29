@@ -6,9 +6,8 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "usuarios")
 data class Usuario(
     @PrimaryKey
-    val id: String,
-    val email: String,
-    val pass: String,
-    var fullname: String,
+    val id: String = "",
+    val email: String = "",
+    var fullname: String = "",
     var ultimaMod: Long = System.currentTimeMillis()
 ) 
