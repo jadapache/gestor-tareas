@@ -21,11 +21,11 @@ class ViewModelFactory(
         // Crear instancias de los repositorios locales
         val tareaDao = db.getTareaDao()
         val usuarioDao = db.getUsuarioDao()
-        val tareaRepositoryLocal = TareaRepository(tareaDao)
+        val tareaRepositoryLocal = TareaRepository(tareaDao, application.applicationContext)
 
         // Crear instancias de los repositorios de Firebase
-        val tareaRepositoryFirebase = TareaRepositoryFirebase()
-        val usuarioRepositoryFirebase = UsuarioRepository(usuarioDao)
+        val tareaRepositoryFirebase = TareaRepositoryFirebase(application.applicationContext)
+        val usuarioRepositoryFirebase = UsuarioRepository(usuarioDao, application.applicationContext)
 
         // Crear el repositorio de sincronización
         val tareaRepositorySync = TareaRepositorySync(

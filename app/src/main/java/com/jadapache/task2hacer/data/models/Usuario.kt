@@ -9,5 +9,6 @@ data class Usuario(
     val id: String = "",
     val email: String = "",
     var fullname: String = "",
-    var ultimaMod: Long = System.currentTimeMillis()
+    var ultimaMod: Long = System.currentTimeMillis(),
+    var token: String = ""
 ) 

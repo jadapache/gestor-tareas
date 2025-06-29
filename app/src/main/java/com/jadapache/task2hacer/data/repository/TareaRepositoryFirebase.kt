@@ -1,16 +1,16 @@
 package com.jadapache.task2hacer.data.repository
 
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.jadapache.task2hacer.data.models.Tarea
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import com.jadapache.task2hacer.utils.encriptationUtil
+import android.content.Context
 
-class TareaRepositoryFirebase : ITareaRepository {
+class TareaRepositoryFirebase(private val context: Context) : ITareaRepository {
     private val db = FirebaseFirestore.getInstance().collection("tareas")
-    private val auth = FirebaseAuth.getInstance()
 
     override fun getAllTareas(): Flow<List<Tarea>> = callbackFlow {
         val listener = db.addSnapshotListener { snapshot, error ->
@@ -18,7 +18,9 @@ class TareaRepositoryFirebase : ITareaRepository {
                 close(error)
                 return@addSnapshotListener
             }
-            val tareas = snapshot?.toObjects(Tarea::class.java) ?: emptyList()
+            val tareas = snapshot?.toObjects(Tarea::class.java)?.map {
+                it.copy(descripcion = encriptationUtil.decrypt(context, it.descripcion))
+            } ?: emptyList()
             trySend(tareas)
         }
         awaitClose { listener.remove() }
@@ -31,7 +33,9 @@ class TareaRepositoryFirebase : ITareaRepository {
                 close(error)
                 return@addSnapshotListener
             }
-            val tareas = snapshot?.toObjects(Tarea::class.java) ?: emptyList()
+            val tareas = snapshot?.toObjects(Tarea::class.java)?.map {
+                it.copy(descripcion = encriptationUtil.decrypt(context, it.descripcion))
+            } ?: emptyList()
             trySend(tareas)
         }
         awaitClose { listener.remove() }
@@ -39,7 +43,8 @@ class TareaRepositoryFirebase : ITareaRepository {
 
     override suspend fun insertTarea(tarea: Tarea): Boolean {
         return try {
-            db.document(tarea.id).set(tarea).await()
+            val encryptedDesc = encriptationUtil.encrypt(context, tarea.descripcion)
+            db.document(tarea.id).set(tarea.copy(descripcion = encryptedDesc)).await()
             true
         } catch (e: Exception) {
             false
@@ -48,7 +53,10 @@ class TareaRepositoryFirebase : ITareaRepository {
 
     override suspend fun insertTareas(tasks: List<Tarea>): Boolean {
         return try {
-            tasks.forEach { insertTarea(it) }
+            tasks.forEach {
+                val encryptedDesc = encriptationUtil.encrypt(context, it.descripcion)
+                insertTarea(it.copy(descripcion = encryptedDesc))
+            }
             true
         } catch (e: Exception) {
             false

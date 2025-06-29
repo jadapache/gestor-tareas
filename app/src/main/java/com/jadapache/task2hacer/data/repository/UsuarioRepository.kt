@@ -1,17 +1,19 @@
 package com.jadapache.task2hacer.data.repository
 
+import android.content.Context
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.firestore.FirebaseFirestore
 import com.jadapache.task2hacer.data.daos.UsuarioDao
 import com.jadapache.task2hacer.data.models.Usuario
-import com.jadapache.task2hacer.utils.AESUtil
+import com.jadapache.task2hacer.utils.userKeyUtil
 import kotlinx.coroutines.tasks.await
 import java.io.IOException
 
 class UsuarioRepository(
-    private val usuarioDao: UsuarioDao
+    private val usuarioDao: UsuarioDao,
+    private val context: Context
 ) : IUsuarioRepository {
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance().collection("usuarios")
@@ -24,6 +26,7 @@ class UsuarioRepository(
                 val usuario = Usuario(id = user.uid, email = email, fullname = fullname)
                 db.document(user.uid).set(usuario).await()
                 usuarioDao.insertUser(usuario)
+                userKeyUtil.getOrCreateUserKey(context)
                 Result.success(usuario)
             } else {
                 Result.failure(Exception("No se pudo registrar el usuario en Firebase."))
@@ -50,6 +53,8 @@ class UsuarioRepository(
             val result = auth.signInWithEmailAndPassword(email, password).await()
             val user = result.user
             if (user != null) {
+                // Descargar y almacenar la clave única del usuario
+                userKeyUtil.getOrCreateUserKey(context)
                 //Se lee los datos del usuario desde FireStore y se serializa en un objeto Usuario
                 val dataSnapshot = db.document(user.uid).get().await()
                 val usuario = try {
