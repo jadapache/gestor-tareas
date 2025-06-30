@@ -33,6 +33,7 @@ import com.jadapache.task2hacer.screens.RegisterScreen
 import com.jadapache.task2hacer.screens.TareaScreen
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import androidx.compose.runtime.DisposableEffect
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,11 +58,26 @@ fun AppNavigation() {
 
     var startDestination by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(true) }
+    var isLoggedIn by remember { mutableStateOf(FirebaseAuth.getInstance().currentUser != null) }
 
-    LaunchedEffect(Unit) {
+    // Se emplea un evento para capturar la notificación del cambio en el estado de autenticación de Firebase.
+    DisposableEffect(Unit) {
+        val authListener = FirebaseAuth.AuthStateListener { auth ->
+            isLoggedIn = auth.currentUser != null
+            if (!isLoggedIn) {
+                navController.navigate("login") {
+                    popUpTo(0) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
+        }
+        FirebaseAuth.getInstance().addAuthStateListener(authListener)
+        onDispose { FirebaseAuth.getInstance().removeAuthStateListener(authListener) }
+    }
+
+    LaunchedEffect(isLoggedIn) {
         isLoading = true
-        val firebaseUser = FirebaseAuth.getInstance().currentUser
-        startDestination = if (firebaseUser != null) "principal" else "login"
+        startDestination = if (isLoggedIn) "principal" else "login"
         isLoading = false
     }
 
