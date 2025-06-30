@@ -45,12 +45,17 @@ fun TareaScreen(
     val isNewTask = tareaId == null
     val task = if (isNewTask) null else viewModel.tareas.collectAsState().value.find { it.id == tareaId }
     val userId = FirebaseAuth.getInstance().currentUser?.uid
-    var nombre by remember { mutableStateOf(task?.nombre ?: "") }
-    var descripcion by remember { mutableStateOf(task?.descripcion ?: "") }
+    var nombre by remember { mutableStateOf("") }
+    var descripcion by remember { mutableStateOf("") }
     var ubicacion by remember {
         mutableStateOf(
             task?.ubicacion?.split(",")?.let { LatLng(it[0].toDouble(), it[1].toDouble()) }
         )
+    }
+
+    LaunchedEffect(task) {
+        nombre = task?.nombre ?: ""
+        descripcion = task?.descripcion ?: ""
     }
 
     val context = LocalContext.current
