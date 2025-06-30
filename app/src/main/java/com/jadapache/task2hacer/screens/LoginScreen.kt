@@ -13,16 +13,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
-import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.jadapache.task2hacer.viewmodel.UserViewModel
 import com.jadapache.task2hacer.viewmodel.ViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(navController: NavController, auth: FirebaseAuth) {
+fun LoginScreen(navController: NavController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
@@ -66,13 +63,15 @@ fun LoginScreen(navController: NavController, auth: FirebaseAuth) {
                 onClick = {
                     if (email.isBlank() || password.isBlank()) {
                         errorMessage = "Correo y contraseña no pueden estar vacíos."
+                        isLoading = false // Se emplea para detener la carga
                         return@Button
                     }
                     isLoading = true
                     errorMessage = null
                     userViewModel.loginUser(email, password)
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isLoading // Se deshabilita botón en la carga
             ) {
                 Text("Iniciar Sesión")
             }

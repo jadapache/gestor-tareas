@@ -28,7 +28,6 @@ object userKeyUtil {
         )
         val db = FirebaseFirestore.getInstance().collection("usuarios")
         val doc = db.document(userId).get().await()
-        val keyBase64 = prefs.getString(KEY_ALIAS + userId, null)
         if (doc != null) {
             // Buscar en el documento del usuario
             val cloudKeyBase64 = doc.getString("token")

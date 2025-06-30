@@ -1,7 +1,6 @@
 package com.jadapache.task2hacer.data.repository
 
 import android.content.Context
-import com.jadapache.task2hacer.data.daos.TareaDao
 import com.jadapache.task2hacer.data.models.Tarea
 import com.jadapache.task2hacer.utils.isInternetAvailable
 import kotlinx.coroutines.CoroutineScope

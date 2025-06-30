@@ -81,7 +81,6 @@ fun TareaScreen(
         }
     )
 
-    var showDeleteButton by remember { mutableStateOf(false) }
     var showConfirmDialog by remember { mutableStateOf(false) }
     var modoEdicionUbicacion by remember { mutableStateOf(false) }
 
@@ -243,7 +242,6 @@ fun TareaScreen(
                         confirmButton = {
                             TextButton(onClick = {
                                 ubicacion = null
-                                showDeleteButton = false
                                 showConfirmDialog = false
                                 modoEdicionUbicacion = false
                             }) {

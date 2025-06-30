@@ -85,7 +85,7 @@ fun AppNavigation() {
                 TareaScreen(navController, tareasViewModel, tareaId)
             }
             composable("login") {
-                LoginScreen(navController, FirebaseAuth.getInstance())
+                LoginScreen(navController)
             }
             composable("registro") {
                 RegisterScreen(navController)

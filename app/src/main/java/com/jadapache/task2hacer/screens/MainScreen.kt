@@ -26,6 +26,55 @@ import com.google.firebase.auth.FirebaseAuth
 import com.jadapache.task2hacer.data.models.Tarea
 import com.jadapache.task2hacer.viewmodel.TareasViewModel
 
+@Composable
+fun PendingTasksList(tasks: List<Tarea>, navController: NavHostController, viewModel: TareasViewModel, onToastMessage: (String) -> Unit) {
+    if (tasks.isNotEmpty()) {
+        LazyColumn(modifier = Modifier.fillMaxWidth()) {
+            items(tasks) { tarea ->
+                TareaCard(
+                    tarea = tarea,
+                    navController = navController,
+                    viewModel = viewModel,
+                    onToastMessage = onToastMessage
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun CompletedTasksList(tasks: List<Tarea>, navController: NavHostController, viewModel: TareasViewModel, onToastMessage: (String) -> Unit) {
+    if (tasks.isNotEmpty()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 24.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Completadas (${tasks.size})",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(end = 8.dp)
+            )
+        }
+        LazyColumn(modifier = Modifier.fillMaxWidth()) {
+            items(tasks) { tarea ->
+                TareaCard(
+                    tarea = tarea,
+                    navController = navController,
+                    viewModel = viewModel,
+                    onToastMessage = onToastMessage
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun NoTasksMessage() {
+    Text(text = "No hay tareas registradas.", modifier = Modifier.padding(16.dp))
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(navController: NavHostController, viewModel: TareasViewModel) {
@@ -74,44 +123,10 @@ fun MainScreen(navController: NavHostController, viewModel: TareasViewModel) {
         ) {
             Spacer(modifier = Modifier.height(10.dp))
             if (pendientesTasks.isEmpty() && completedTasks.isEmpty()) {
-                Text(text = "No hay tareas registradas.", modifier = Modifier.padding(16.dp))
+                NoTasksMessage()
             } else {
-                if (pendientesTasks.isNotEmpty()) {
-                    LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                        items(pendientesTasks) { tarea ->
-                            TareaCard(
-                                tarea = tarea,
-                                navController = navController,
-                                viewModel = viewModel,
-                                onToastMessage = { msg -> toastMessage = msg }
-                            )
-                        }
-                    }
-                }
-                if (completedTasks.isNotEmpty()) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 24.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Completadas (${completedTasks.size})",
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(end = 8.dp)
-                        )
-                    }
-                    LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                        items(completedTasks) { tarea ->
-                            TareaCard(
-                                tarea = tarea,
-                                navController = navController,
-                                viewModel = viewModel,
-                                onToastMessage = { msg -> toastMessage = msg }
-                            )
-                        }
-                    }
-                }
+                PendingTasksList(pendientesTasks, navController, viewModel, onToastMessage = { msg -> toastMessage = msg })
+                CompletedTasksList(completedTasks, navController, viewModel, onToastMessage = { msg -> toastMessage = msg })
             }
         }
     }
